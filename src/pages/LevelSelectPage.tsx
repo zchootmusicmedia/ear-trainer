@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Profile } from '../types';
 import { LEVELS, LEVEL_NOTE_LABELS } from '../data/levels';
 import { getDailyChallenge } from '../data/storage';
 import ProgressBar from '../components/ProgressBar';
 import Logo from '../components/Logo';
 import Footer from '../components/Footer';
+import DemoUpgradeModal from '../components/DemoUpgradeModal';
+import { isDemoLevelOpen } from '../data/demoConfig';
 
 const FONT = "'Heebo', 'Assistant', sans-serif";
 
@@ -20,6 +22,7 @@ interface LevelSelectPageProps {
 export default function LevelSelectPage({ profile, onSelectLevel, onSongLevel, onDailyChallenge, onBack, onAchievements }: LevelSelectPageProps) {
   const today = new Date().toISOString().split('T')[0];
   const dailyDone = profile.dailyChallenges[today]?.completed;
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const allCompleted = LEVELS.every((level) => {
     const prog = profile.levelProgress[level.id];
@@ -89,7 +92,13 @@ export default function LevelSelectPage({ profile, onSelectLevel, onSongLevel, o
             return (
               <button
                 key={level.id}
-                onClick={() => onSelectLevel(level.id)}
+                onClick={() => {
+                      if (!isDemoLevelOpen(level.id)) {
+                        setShowDemoModal(true);
+                        return;
+                      }
+                      onSelectLevel(level.id);
+                    }}
                 style={{ width: '100%', padding: '14px 16px', borderRadius: '16px', background: isComplete ? 'rgba(52,211,153,0.07)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isComplete ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.1)'}`, backdropFilter: 'blur(16px)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'right' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(251,146,60,0.1)'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(251,146,60,0.32)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 24px rgba(251,146,60,0.1)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isComplete ? 'rgba(52,211,153,0.07)' : 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.border = `1px solid ${isComplete ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.1)'}`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
@@ -114,7 +123,7 @@ export default function LevelSelectPage({ profile, onSelectLevel, onSongLevel, o
 
           {/* Songs final level card */}
           <button
-            onClick={onSongLevel}
+            onClick={() => setShowDemoModal(true)}
             style={{ width: '100%', marginTop: '6px', padding: '18px 18px', borderRadius: '20px', background: 'linear-gradient(135deg, rgba(167,139,250,0.14) 0%, rgba(139,92,246,0.08) 100%)', border: '1px solid rgba(167,139,250,0.38)', backdropFilter: 'blur(16px)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'right', boxShadow: '0 0 36px rgba(167,139,250,0.12)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, rgba(167,139,250,0.22) 0%, rgba(139,92,246,0.14) 100%)'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(167,139,250,0.55)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 50px rgba(167,139,250,0.22)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, rgba(167,139,250,0.14) 0%, rgba(139,92,246,0.08) 100%)'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(167,139,250,0.38)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 36px rgba(167,139,250,0.12)'; }}
@@ -131,7 +140,11 @@ export default function LevelSelectPage({ profile, onSelectLevel, onSongLevel, o
         </div>
       </div>
 
+      {showDemoModal && (
+        <DemoUpgradeModal onClose={() => setShowDemoModal(false)} />
+      )}
       <Footer />
     </div>
   );
 }
+
